@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres:12
+    # build: ./
+    restart: always
+    working_dir: /home/data
+    environment:
+      # POSTGRES_USER: default -> postgres
+      # POSTGRES_DB: default -> POSTGRES_USER
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - ./data:/home/data
+      - ./scripts:/docker-entrypoint-initdb.d/
+    ports:
+      - 5430:5432
