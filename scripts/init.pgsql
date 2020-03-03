@@ -39,8 +39,24 @@ ALTER TABLE card
   ADD COLUMN document_with_weights tsvector;
 
 UPDATE card
-  SET document_with_weights = setweight(to_tsvector(name), 'A') || setweight(to_tsvector(artist), 'B') || setweight(to_tsvector(COALESCE(text, '')), 'C');
+  SET document_with_weights = setweight(to_tsvector(name), 'A')
+  || setweight(to_tsvector(artist), 'B')
+  || setweight(to_tsvector(COALESCE(text, '')), 'C');
 
 CREATE INDEX document_weights_idx
   ON card
   USING GIN (document_with_weights);
+
+-- create trigger to update tsvector when either of the columns are updated
+CREATE FUNCTION card_tsvector_trigger() RETURNS trigger AS $$
+begin
+  new.document_with_weights :=
+  setweight(to_tsvector('english', COALESCE(new.name, '')), 'A')
+  || setweight(to_tsvector('english', COALESCE(new.artist, '')), 'B')
+  || setweight(to_tsvector('english', COALESCE(new.text, '')), 'C');
+  RETURN new;
+end
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
+  ON card FOR EACH ROW EXECUTE PROCEDURE card_tsvector_trigger();

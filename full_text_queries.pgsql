@@ -43,3 +43,9 @@ SELECT name, artist, text
   from card
   where document_with_idx @@ plainto_tsquery('island')
   order by ts_rank(document_with_weights, plainto_tsquery('island')) DESC;
+
+-- view ranking
+SELECT name, artist, text, ts_rank(document_with_weights, plainto_tsquery('island'))
+  from card
+  where document_with_idx @@ plainto_tsquery('island')
+  order by ts_rank(document_with_weights, plainto_tsquery('island')) DESC;
